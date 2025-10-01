@@ -1,0 +1,55 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*.so
+
+# Virtual environment
+venv/
+env/
+.venv/
+s.py
+
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+
+# VS Code settings
+.vscode/
+
+# Data files
+*.csv
+*.tsv
+*.xlsx
+
+# Model files
+*.h5
+*.pt
+*.pth
+*.joblib
+*.pkl
+
+# Logs
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Python egg files
+*.egg
+*.egg-info/
+dist/
+build/
+
+# Test coverage reports
+htmlcov/
+.coverage
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+s.py
+
+# pip
+pip-log.txt
+pip-delete-this-directory.txt

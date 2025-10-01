@@ -1,0 +1,9 @@
+streamlit
+arxiv
+requests
+google-generativeai
+python-dotenv
+PyPDF2
+passlib
+bcrypt
+psutil
