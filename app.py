@@ -4,7 +4,7 @@ st.set_page_config(layout="wide", initial_sidebar_state="expanded")
 hide_streamlit_style = """
 <style>
 .st-emotion-cache-zy6yx3 {
-    padding-bottom: 0;
+    padding-bottom: 0.5 rem;
  
 </style>
 """
