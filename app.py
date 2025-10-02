@@ -237,6 +237,9 @@ def show_retrieval_page():
                             model = get_gemini_model()
                             if model:
                                 with st.spinner("Saving this may take a moment..."):
+                                    # --- Create user folder if it doesn't exist ---
+                                    os.makedirs(user_folder, exist_ok=True)
+
                                     # --- Generate Summary ---
                                     summary_response = model.generate_content(f"Summarize this research paper: {result.summary}")
                                     gemini_summary = summary_response.text
