@@ -4,6 +4,6 @@ requests
 google-generativeai
 python-dotenv
 PyPDF2
-passlib
+bcrypt
 bcrypt
 psutil

@@ -10,7 +10,7 @@ hide_streamlit_style = """
 """
 st.markdown(hide_streamlit_style, unsafe_allow_html=True)
 import os
-import json
+import database as db
 import arxiv
 import datetime
 import requests
@@ -23,7 +23,7 @@ load_dotenv()
 
 # --- Configuration ---
 SAVED_PAPERS_DIR = "/home/derp/Desktop/nlp_project/saved_papers"
-USERS_FILE = "/home/derp/Desktop/nlp_project/users.json"
+
 
 # --- Gemini API Setup ---
 def get_gemini_model():
@@ -38,21 +38,12 @@ def get_gemini_model():
             return None
     return None
 
-# --- User Authentication Functions ---
-def get_users():
-    """Loads the users from the JSON file."""
-    if not os.path.exists(USERS_FILE):
-        return {}
-    with open(USERS_FILE, "r") as f:
-        return json.load(f)
-
-def save_users(users):
-    """Saves the users to the JSON file."""
-    with open(USERS_FILE, "w") as f:
-        json.dump(users, f)
 
 # --- UI Rendering ---
 def show_login_signup():
+    conn = db.create_connection()
+    db.create_table(conn)
+
     st.markdown("<h1 style='text-align: center;'>Welcome to the Research Paper AI</h1>", unsafe_allow_html=True)
     
     col1, col2, col3 = st.columns([1,1.5,1])
@@ -66,27 +57,23 @@ def show_login_signup():
                 new_username = st.text_input("Choose a username")
                 new_password = st.text_input("Choose a password", type="password")
                 if st.button("Sign Up"):
-                    users = get_users()
-                    if new_username in users:
-                        st.error("Username already exists.")
-                    elif not new_username or not new_password:
+                    if not new_username or not new_password:
                         st.error("Username and password cannot be empty.")
-                    else:
-                        users[new_username] = new_password
-                        save_users(users)
+                    elif db.add_user(conn, new_username, new_password):
                         user_folder = os.path.join(SAVED_PAPERS_DIR, new_username)
                         os.makedirs(user_folder, exist_ok=True)
                         st.session_state.username = new_username
                         st.session_state.page = 'retrieval'
                         st.rerun()
+                    else:
+                        st.error("Username already exists.")
 
             elif choice == 'Login':
                 st.subheader("Log Into Your Account")
                 username = st.text_input("Username")
                 password = st.text_input("Password", type="password")
                 if st.button("Login"):
-                    users = get_users()
-                    if username in users and users[username] == password:
+                    if db.check_user(conn, username, password):
                         st.session_state.username = username
                         st.session_state.page = 'retrieval'
                         st.rerun()

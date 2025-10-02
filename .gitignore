@@ -53,3 +53,6 @@ s.py
 # pip
 pip-log.txt
 pip-delete-this-directory.txt
+
+# Environment variables
+.env
