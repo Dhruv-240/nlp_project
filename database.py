@@ -27,7 +27,7 @@ def add_user(conn, username, password):
     try:
         c = conn.cursor()
         hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
-        c.execute("INSERT INTO users (username, password) VALUES (?, ?)", (username, hashed_password))
+        c.execute("INSERT INTO users (username, password) VALUES (?, ?)", (username.lower(), hashed_password))
         conn.commit()
         return True
     except sqlite3.IntegrityError:
@@ -40,7 +40,7 @@ def check_user(conn, username, password):
     """Checks if a user exists and the password is correct."""
     try:
         c = conn.cursor()
-        c.execute("SELECT password FROM users WHERE username = ?", (username,))
+        c.execute("SELECT password FROM users WHERE username = ?", (username.lower(),))
         stored_password_hash = c.fetchone()
         if stored_password_hash:
             return bcrypt.checkpw(password.encode('utf-8'), stored_password_hash[0])

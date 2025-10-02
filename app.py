@@ -22,7 +22,8 @@ from PyPDF2 import PdfReader
 load_dotenv()
 
 # --- Configuration ---
-SAVED_PAPERS_DIR = "/home/derp/Desktop/nlp_project/saved_papers"
+SAVED_PAPERS_DIR = "saved_papers"
+os.makedirs(SAVED_PAPERS_DIR, exist_ok=True)
 
 
 # --- Gemini API Setup ---
@@ -59,10 +60,10 @@ def show_login_signup():
                 if st.button("Sign Up"):
                     if not new_username or not new_password:
                         st.error("Username and password cannot be empty.")
-                    elif db.add_user(conn, new_username, new_password):
-                        user_folder = os.path.join(SAVED_PAPERS_DIR, new_username)
+                    elif db.add_user(conn, new_username.lower(), new_password):
+                        user_folder = os.path.join(SAVED_PAPERS_DIR, new_username.lower())
                         os.makedirs(user_folder, exist_ok=True)
-                        st.session_state.username = new_username
+                        st.session_state.username = new_username.lower()
                         st.session_state.page = 'retrieval'
                         st.rerun()
                     else:
@@ -73,8 +74,8 @@ def show_login_signup():
                 username = st.text_input("Username")
                 password = st.text_input("Password", type="password")
                 if st.button("Login"):
-                    if db.check_user(conn, username, password):
-                        st.session_state.username = username
+                    if db.check_user(conn, username.lower(), password):
+                        st.session_state.username = username.lower()
                         st.session_state.page = 'retrieval'
                         st.rerun()
                     else:
