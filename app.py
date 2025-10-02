@@ -19,7 +19,7 @@ import google.generativeai as genai
 from dotenv import load_dotenv
 from PyPDF2 import PdfReader
 
-load_dotenv()
+
 
 # --- Configuration ---
 SAVED_PAPERS_DIR = "saved_papers"
