@@ -236,7 +236,7 @@ def show_retrieval_page():
                         if st.button("Save", key=f"save_{result.entry_id}_{i}"):
                             model = get_gemini_model()
                             if model:
-                                with st.spinner("Saving this may take a moment..."):
+                                with st.spinner("Saving, this may take a moment..."):
                                     # --- Create user folder if it doesn't exist ---
                                     os.makedirs(user_folder, exist_ok=True)
 
