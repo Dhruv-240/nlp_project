@@ -5,5 +5,5 @@ google-generativeai
 python-dotenv
 PyPDF2
 bcrypt
-bcrypt
 psutil
+plotly

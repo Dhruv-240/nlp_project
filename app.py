@@ -19,6 +19,9 @@ import base64
 import google.generativeai as genai
 from dotenv import load_dotenv
 from PyPDF2 import PdfReader
+import pandas as pd
+import plotly.express as px
+from collections import Counter
 
 
 
@@ -30,6 +33,7 @@ os.makedirs(SAVED_PAPERS_DIR, exist_ok=True)
 # --- Gemini API Setup ---
 def get_gemini_model():
     """Initializes and returns the Gemini Pro model."""
+    load_dotenv()
     api_key = os.environ.get("GEMINI_API_KEY")
     if api_key:
         try:
@@ -39,6 +43,112 @@ def get_gemini_model():
             st.error(f"Failed to configure Gemini API: {e}")
             return None
     return None
+
+
+# --- Visualization Functions ---
+def create_publication_trends_chart(results):
+    """Creates a bar chart showing publication trends by year."""
+    if not results:
+        return None
+    
+    # Extract publication years
+    years = []
+    for result in results:
+        year = result.published.year
+        years.append(year)
+    
+    # Count papers per year
+    year_counts = Counter(years)
+    
+    # Create DataFrame
+    df = pd.DataFrame(list(year_counts.items()), columns=['Year', 'Number of Papers'])
+    df = df.sort_values('Year')
+    
+    # Create bar chart
+    fig = px.bar(df, x='Year', y='Number of Papers',
+                 title='Publication Trends by Year',
+                 labels={'Number of Papers': 'Number of Papers', 'Year': 'Publication Year'},
+                 color='Number of Papers',
+                 color_continuous_scale='Blues')
+    
+    fig.update_layout(
+        xaxis_tickmode='linear',
+        xaxis_dtick=1,
+        showlegend=False,
+        height=400
+    )
+    
+    return fig
+
+
+def create_category_distribution_chart(results):
+    """Creates a pie chart showing distribution of paper categories."""
+    if not results:
+        return None
+    
+    # Extract primary categories
+    categories = []
+    for result in results:
+        if result.categories:
+            # Get primary category (first one)
+            primary_cat = result.categories[0]
+            categories.append(primary_cat)
+    
+    if not categories:
+        return None
+    
+    # Count categories
+    cat_counts = Counter(categories)
+    
+    # Create DataFrame
+    df = pd.DataFrame(list(cat_counts.items()), columns=['Category', 'Count'])
+    df = df.sort_values('Count', ascending=False)
+    
+    # Create pie chart
+    fig = px.pie(df, values='Count', names='Category',
+                 title='Distribution by arXiv Category',
+                 hole=0.3)
+    
+    fig.update_traces(textposition='inside', textinfo='percent+label')
+    fig.update_layout(height=400)
+    
+    return fig
+
+
+def create_author_collaboration_chart(results, top_n=10):
+    """Creates a bar chart showing most frequent authors."""
+    if not results:
+        return None
+    
+    # Extract all authors
+    author_names = []
+    for result in results:
+        for author in result.authors:
+            author_names.append(author.name)
+    
+    if not author_names:
+        return None
+    
+    # Count authors
+    author_counts = Counter(author_names)
+    
+    # Get top N authors
+    top_authors = dict(author_counts.most_common(top_n))
+    
+    # Create DataFrame
+    df = pd.DataFrame(list(top_authors.items()), columns=['Author', 'Number of Papers'])
+    df = df.sort_values('Number of Papers', ascending=True)
+    
+    # Create horizontal bar chart
+    fig = px.bar(df, x='Number of Papers', y='Author',
+                 title=f'Top {top_n} Most Prolific Authors',
+                 orientation='h',
+                 color='Number of Papers',
+                 color_continuous_scale='Viridis')
+    
+    fig.update_layout(height=400, showlegend=False)
+    
+    return fig
 
 
 # --- UI Rendering ---
@@ -211,7 +321,39 @@ def show_retrieval_page():
         st.session_state.search_results = results
 
     if 'search_results' in st.session_state:
-        st.subheader("Search Results")
+        # --- Visualization Section ---
+        st.subheader("Search Results Analytics")
+        
+        # Create three columns for different charts
+        viz_col1, viz_col2 = st.columns(2)
+        
+        with viz_col1:
+            # Publication trends chart
+            trends_chart = create_publication_trends_chart(st.session_state.search_results)
+            if trends_chart:
+                st.plotly_chart(trends_chart, use_container_width=True)
+            else:
+                st.info("No data available for publication trends.")
+        
+        with viz_col2:
+            # Category distribution chart
+            category_chart = create_category_distribution_chart(st.session_state.search_results)
+            if category_chart:
+                st.plotly_chart(category_chart, use_container_width=True)
+            else:
+                st.info("No data available for category distribution.")
+        
+        # Author collaboration chart (full width)
+        author_chart = create_author_collaboration_chart(st.session_state.search_results)
+        if author_chart:
+            st.plotly_chart(author_chart, use_container_width=True)
+        else:
+            st.info("No data available for author analysis.")
+        
+        st.divider()
+        
+        # --- Search Results List ---
+        st.subheader("Paper Details")
 
         # Get a list of saved paper titles
         saved_paper_titles = []
@@ -225,6 +367,7 @@ def show_retrieval_page():
                 with col1:
                     st.subheader(result.title)
                     st.write(f"**Authors:** {', '.join(a.name for a in result.authors)}")
+                    st.caption(f"Published: {result.published.strftime('%Y-%m-%d')} | Category: {result.categories[0] if result.categories else 'N/A'}")
                 
                 safe_title = "".join(c for c in result.title if c.isalnum() or c in (' ', '_')).rstrip()
                 is_saved = safe_title in saved_paper_titles
